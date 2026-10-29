@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian Gadget | Company Vault</title>
+    <script src="tailwind-local.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669', // Primary Brand Color
+                            700: '#047857',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; color: #111827; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+        .view-panel { transition: opacity 0.2s ease-in-out; }
+        .hidden-view { display: none !important; opacity: 0; }
+        
+        /* Toast styles */
+        #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { background: #111827; color: white; padding: 1rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+<link rel="stylesheet" href="reference.css"><link rel="stylesheet" href="intake-flow.css"><link rel="stylesheet" href="dark-mode.css"><link rel="stylesheet" href="listing-prep.css"><link rel="stylesheet" href="bookkeeping.css"><link rel="stylesheet" href="workspace.css"><link rel="stylesheet" href="inspector-layout.css"><link rel="stylesheet" href="login.css"></head>
+<body class="h-screen flex overflow-hidden bg-gray-50">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col h-full shrink-0 z-30 shadow-sm relative">
+        <!-- Branding -->
+        <div class="h-16 flex items-center px-6 border-b border-gray-100">
+            <div class="flex items-center gap-2 text-emerald-700 font-bold text-lg tracking-tight">
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                    <svg class="inline-icon ph-fill ph-devices text-emerald-600 text-xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v13H4z M2 20h20"/></svg>
+                </div>
+                Obsidian Gadget
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+            <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-emerald-50 text-emerald-700 transition-colors">
+                <svg class="inline-icon ph ph-squares-four text-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"/></svg> Dashboard
+            </button>
+            <button onclick="switchView('list')" id="nav-list" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                <svg class="inline-icon ph ph-archive-box text-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18v14H3z M2 3h20v4H2z M9 11h6"/></svg> Inventory Vault
+            </button>
+            <button onclick="switchView('customers')" id="nav-customers" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                <svg class="inline-icon ph ph-users text-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.9 M16 3.1a4 4 0 0 1 0 7.8"/></svg> Customer Vault
+            </button>
+        <button onclick="switchView('bookkeeping')" id="nav-bookkeeping" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"><span aria-hidden="true">▤</span> Bookkeeping</button></nav>
+        
+        <!-- Bottom Action & User -->
+        <div class="p-4 border-t border-gray-100 space-y-4 bg-white">
+            <button onclick="switchView('form')" class="w-full px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-sm flex items-center justify-center gap-2">
+                <svg class="inline-icon ph ph-plus-circle text-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14 M5 12h14"/></svg> New Intake
+            </button>
+            <div class="flex items-center gap-3 pt-2">
+                <div class="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
+                    <svg class="inline-icon ph ph-user-circle text-xl text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a7 7 0 0 0-14 0v2 M13 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg>
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-medium text-gray-900 truncate"><label for="active-user" class="sr-only">Active user</label><select id="active-user" class="bg-transparent text-sm font-semibold text-gray-900 outline-none" aria-label="Active user"><option>Juan</option><option>Paul</option></select></p>
+                    <p class="text-xs text-gray-500 truncate">Owner · Switch user</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 relative overflow-hidden bg-gray-50 flex flex-col">
+
+        <!-- Header (Contextual) -->
+        <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between shrink-0 z-20">
+            <h1 id="top-header-title" class="text-xl font-bold text-gray-900">Dashboard</h1>
+            <div class="flex items-center gap-3">
+                <button id="theme-toggle" type="button" onclick="toggleTheme()" aria-pressed="false">☾ Dark mode</button><input id="vault-search" placeholder="Search items or customers" aria-label="Search items or customers" class="px-3 py-2 border border-gray-200 rounded-lg text-sm w-52"><button type="button" onclick="openSheetsSync()" class="text-sm text-emerald-600">Sync Sheets</button><button onclick="exportBackup()" class="text-sm text-gray-500">Backup</button><label class="text-sm text-gray-500 cursor-pointer">Restore<input type="file" id="restore-file" accept="application/json" class="hidden"></label><div id="loading-indicator" class="hidden items-center gap-2 text-sm text-gray-400">
+                    <svg class="inline-icon ph ph-spinner animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v13H4z M2 20h20"/></svg> Syncing...
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 relative overflow-y-auto">
+
+            <!-- ========================================== -->
+            <!-- VIEW 1: DASHBOARD                          -->
+            <!-- ========================================== -->
+            <div id="view-bookkeeping" class="view-panel hidden-view absolute inset-0 w-full p-6 md:p-8"></div><div id="view-dashboard" class="view-panel absolute inset-0 w-full p-6 md:p-8 space-y-6">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                            <svg class="inline-icon ph ph-laptop text-2xl text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v13H4z M2 20h20"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Total Inventory</p>
+                            <p id="dash-total-inv" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                            <svg class="inline-icon ph ph-handshake text-2xl text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v13H4z M2 20h20"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Ready to List</p>
+                            <p id="dash-active-offers" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                            <svg class="inline-icon ph ph-trend-up text-2xl text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-10 M15 5h6v6"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Est. Unsold Profit</p>
+                            <p id="dash-est-profit" class="text-2xl font-bold text-gray-900">$0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Table -->
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-gray-700">Recent Intakes</h2>
+                        <button onclick="switchView('list')" class="text-sm text-emerald-600 font-medium hover:text-emerald-700">View All</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Item</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Customer</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-recent-list" class="bg-white divide-y divide-gray-200">
+                                <!-- Populated by JS -->
+                                <tr><td colspan="3" class="px-6 py-8 text-center text-sm text-gray-500">Loading recent activity...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 2: INVENTORY VAULT                    -->
+            <!-- ========================================== -->
+            <div id="view-list" class="view-panel hidden-view absolute inset-0 w-full p-6 md:p-8 space-y-6">
+                <!-- Filters -->
+                <div class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-xl border border-gray-200 shadow-sm w-fit">
+                    <button onclick="setFilter('All')" id="filter-All" class="filter-btn px-4 py-2 rounded-md text-sm font-semibold bg-gray-100 text-gray-900 transition-all">All</button>
+                    <button onclick="setFilter('Processing')" id="filter-Processing" class="filter-btn px-4 py-2 rounded-md text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all">Processing</button>
+                    <button onclick="setFilter('New')" id="filter-New" class="filter-btn px-4 py-2 rounded-md text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all">New</button>
+                    <button onclick="setFilter('Prepared')" id="filter-Prepared" class="filter-btn px-4 py-2 rounded-md text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all">Prepared</button>
+                </div>
+
+                <!-- Table Headers -->
+                <div class="hidden md:grid grid-cols-12 gap-4 px-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-200">
+                    <div class="col-span-4">Item / Customer</div>
+                    <div class="col-span-2">Source</div>
+                    <div class="col-span-2">Est. Resale</div>
+                    <div class="col-span-2">Net Profit</div>
+                    <div class="col-span-2 text-right">Status</div>
+                </div>
+
+                <!-- List -->
+                <div id="inventory-list" class="space-y-3 pb-8">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 3: CUSTOMER VAULT                     -->
+            <!-- ========================================== -->
+            <div id="view-customers" class="view-panel hidden-view absolute inset-0 w-full p-6 md:p-8 space-y-6">
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact Info</th>
+                                    <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Deals</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customers-list" class="bg-white divide-y divide-gray-200">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 4: ITEM DETAIL                        -->
+            <!-- ========================================== -->
+            <div id="view-detail" class="view-panel hidden-view absolute inset-0 w-full p-6 md:p-8 pb-32">
+                <div class="max-w-5xl mx-auto space-y-6">
+                    <button onclick="switchView('list')" class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors mb-2 w-fit px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <svg class="inline-icon ph ph-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5 M12 5l-7 7 7 7"/></svg> Back to Vault
+                    </button>
+                    
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
+                        <!-- Left Column: Specs & Customer -->
+                        <div class="flex-1 p-8 border-b md:border-b-0 md:border-r border-gray-100">
+                            <div class="flex items-start gap-4 mb-8">
+                                <div class="w-16 h-16 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                                    <svg class="inline-icon ph ph-laptop text-3xl text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v13H4z M2 20h20"/></svg>
+                                </div>
+                                <div>
+                                    <h2 id="detail-model" class="text-2xl font-bold text-gray-900 leading-tight mb-1">--</h2>
+                                    <p id="detail-specs" class="text-sm text-gray-500">--</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-xl p-5 border border-gray-100 mb-8 flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-2">
+                                        <svg class="inline-icon ph ph-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a7 7 0 0 0-14 0v2 M13 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg> Seller
+                                    </h3>
+                                    <div class="flex items-center gap-3">
+                                        <div id="detail-initials" class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0">--</div>
+                                        <div>
+                                            <p id="detail-customer" class="text-sm font-bold text-gray-900">--</p>
+                                            <p id="detail-contact" class="text-xs text-gray-500 mt-0.5">--</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Source</h3>
+                                    <p id="detail-source" class="text-sm font-medium text-gray-700">--</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Diagnostic Description</h3>
+                                <p id="detail-condition" class="text-sm text-gray-700 leading-relaxed bg-white border border-gray-200 p-4 rounded-lg shadow-inner">
+                                    --
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Economics & Actions -->
+                        <div class="w-full md:w-96 bg-gray-50/50 p-8 flex flex-col justify-between">
+                            <div>
+                                <!-- Evaluation Score -->
+                                <div class="flex items-center justify-between mb-8 pb-8 border-b border-gray-200">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-gray-900">Confidence Score</h3>
+                                        <p class="text-xs text-gray-500 mt-1">Recorded assessment</p>
+                                    </div>
+                                    <div class="relative w-16 h-16 flex items-center justify-center">
+                                        <svg class="w-full h-full transform -rotate-90 absolute" viewBox="0 0 36 36">
+                                            <path class="text-gray-200" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                            <path id="detail-score-circle" class="text-emerald-500 transition-all duration-1000 ease-out" stroke-dasharray="0, 100" stroke-width="3" stroke-dashoffset="0" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        </svg>
+                                        <span id="detail-score-text" class="text-lg font-bold text-gray-900 relative">0</span>
+                                    </div>
+                                </div>
+
+                                <!-- Economics -->
+                                <h3 class="text-sm font-bold text-gray-900 mb-4">Projected Economics</h3>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex justify-between text-gray-600">
+                                        <span>Expected Resale</span>
+                                        <span id="detail-resale" class="font-medium text-gray-900">$--</span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-600">
+                                        <span>Fees + Shipping</span>
+                                        <span id="detail-fees" class="text-red-500">—</span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-600 pb-3 border-b border-gray-200">
+                                        <span>Risk allowance</span>
+                                        <span id="detail-risk" class="text-red-500">$--</span>
+                                    </div>
+                                    
+                                    <div class="flex justify-between font-bold text-gray-900 pt-1">
+                                        <span>Purchase Cost</span>
+                                        <span id="detail-offer" class="text-emerald-600">$--</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                        <span>Est. Margin</span>
+                                        <span id="detail-profit" class="font-semibold text-emerald-600">$--</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fixed Bottom Action Bar for Detail View -->
+                <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 px-6 flex justify-end gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 flex-wrap">
+                    <button onclick="editActive()" class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 shadow-sm transition-colors text-center">Edit item</button>
+                    <span class="marketplace-note">Order sync: not connected</span>
+                    <button onclick="advanceActive()" id="advance-button" class="px-5 py-2.5 bg-emerald-600 text-white border border-transparent rounded-lg text-sm font-semibold hover:bg-emerald-700 shadow-sm transition-colors flex items-center justify-center gap-2">
+                        <svg class="inline-icon ph ph-check-circle text-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg> Advance status
+                    </button>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 5: INTAKE FORM                        -->
+            <!-- ========================================== -->
+            <div id="view-form" class="view-panel hidden-view absolute inset-0 w-full p-6 md:p-8 pb-24">
+                <div class="max-w-3xl mx-auto space-y-6">
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div class="px-8 py-6 border-b border-gray-100 bg-gray-50/50">
+                            <h2 class="text-xl font-bold text-gray-900">New Customer & Device Intake</h2>
+                            <p class="text-sm text-gray-500 mt-1">Record the customer, item and purchase together.</p>
+                        </div>
+
+                        <form id="intake-form" class="p-8 space-y-8">
+                            <div class="mb-6"><label for="existing-contact" class="block text-sm font-medium text-gray-700 mb-2">Use an existing contact</label><select id="existing-contact" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg"><option value="">New contact</option></select></div><!-- Customer Section -->
+                            <section class="space-y-4">
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-emerald-700 flex items-center gap-2">
+                                    <svg class="inline-icon ph-fill ph-user-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a7 7 0 0 0-14 0v2 M13 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/></svg> Customer Details
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="block text-sm font-medium text-gray-700">Full Name *</label>
+                                        <input type="text" id="form-name" required class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-shadow">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-sm font-medium text-gray-700">Phone Number *</label>
+                                        <input type="tel" id="form-phone" required class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-shadow">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                                        <input type="email" id="form-email" class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-shadow">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-sm font-medium text-gray-700">Lead Source</label>
+                                        <select id="form-source" required class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-shadow">
+                                            <option value="Meta">Meta Ads</option>
+                                            <option value="Google">Google Search</option>
+                                            <option value="Walk-in">Walk-in</option>
+                                            <option value="Direct">Direct / Referral</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <hr class="border-gray-100">
+
+                            <!-- Device Section -->
+                            <section class="space-y-4">
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-emerald-700 flex items-center gap-2">
+                                    <svg class="inline-icon ph-fill ph-laptop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v13H4z M2 20h20"/></svg> Device Diagnostics
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-1 md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700">Make & Model *</label>
+                                        <input type="text" id="form-model" required placeholder="e.g. 2021 MacBook Pro 14&quot; M1 Pro" class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-shadow">
+                                    </div>
+                                    <div class="space-y-1 md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700">Specs Summary</label>
+                                        <input type="text" id="form-specs" placeholder="e.g. Space Gray, 16GB RAM, 512GB SSD" class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-shadow">
+                                    </div>
+                                    
+                                    <div class="space-y-1 md:col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700 flex justify-between">
+                                            <span>Plain-English Defect Description *</span>
+                                        </label>
+                                        <textarea id="form-condition" required rows="3" placeholder="Describe cosmetic condition, battery health, and any functional quirks..." class="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-shadow resize-none"></textarea>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <label class="block text-sm font-medium text-gray-700">Expected Resale Value ($) *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-bold text-gray-400">$</div>
+                                            <input type="number" id="form-resale" required min="0" step="0.01" class="w-full pl-8 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-shadow">
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-sm font-medium text-gray-700">Purchase Cost ($) *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none font-bold text-gray-400">$</div>
+                                            <input type="number" id="form-offer" required min="0" step="0.01" class="w-full pl-8 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-shadow">
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <div id="form-extra"></div><div id="intake-totals" class="bg-emerald-50 rounded-lg p-4 text-sm text-emerald-900"></div><p id="intake-error" role="alert" class="text-sm text-red-500"></p><div class="pt-6 border-t border-gray-100 flex justify-end gap-3"><button type="button" onclick="switchView('list')" class="px-4 py-3 text-gray-500">Cancel</button>
+                                <button type="submit" class="px-6 py-3 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors shadow-md flex items-center gap-2">
+                                    Save Intake <svg class="inline-icon ph ph-check-circle text-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+<dialog id="sale-dialog"><form id="sale-form"><h2 class="text-xl font-bold mb-5">Record a sale</h2><div id="sale-fields"></div><p id="sale-error" role="alert" class="text-red-500 text-sm mt-3"></p><div class="flex gap-3 justify-end mt-6"><button type="button" onclick="document.getElementById('sale-dialog').close()" class="px-4 py-2 border rounded-lg">Cancel</button><button class="px-5 py-2 bg-emerald-600 text-white rounded-lg" type="submit">Save sale</button></div></form></dialog><script src="reference-app.js"></script><script src="intake-flow.js"></script><script src="preferences.js"></script><script src="listing-prep.js"></script><script src="bookkeeping.js"></script><script src="inspector-layout.js"></script><script src="google-sheets-sync.js"></script><script src="login.js"></script></body></html>
