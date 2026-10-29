@@ -1,0 +1,25 @@
+@media(min-width:1150px){
+ body.item-inspector-open #view-list{display:block!important;left:0;right:auto;width:35%;height:100%;padding:18px 14px!important;border-right:1px solid var(--workspace-border);background:var(--workspace-bg);overflow-y:auto}
+ body.item-inspector-open #view-list>.hidden.md\:grid{display:none!important}
+ body.item-inspector-open #view-list>div:first-child{width:100%;padding:4px;gap:2px}
+ body.item-inspector-open #view-list .filter-btn{font-size:10px;padding:7px 8px}
+ body.item-inspector-open #inventory-list>button{padding:13px;margin-bottom:9px}
+ body.item-inspector-open #inventory-list>button>div{display:grid!important;grid-template-columns:1fr 1fr;gap:10px}
+ body.item-inspector-open #inventory-list>button>div>div{grid-column:auto;min-width:0}
+ body.item-inspector-open #inventory-list>button>div>div:first-child{grid-column:1/-1}
+ body.item-inspector-open #inventory-list>button>div>div:nth-child(2){grid-column:1/-1}
+ body.item-inspector-open #inventory-list>button>div>div:last-child{grid-column:1/-1;justify-content:flex-start}
+ body.item-inspector-open #inventory-list .truncate{white-space:normal;overflow-wrap:anywhere}
+ body.item-inspector-open #view-detail{left:35%;right:0;width:65%;padding:18px 14px!important}
+ body.item-inspector-open #view-detail .max-w-5xl>.bg-white{display:grid!important;grid-template-columns:minmax(0,1.5fr) minmax(210px,1fr);grid-template-rows:minmax(0,1fr)}
+ body.item-inspector-open #view-detail .max-w-5xl>.bg-white>.flex-1{grid-column:1;grid-row:1;min-height:0;overflow-y:auto;padding:16px}
+ body.item-inspector-open #view-detail .max-w-5xl>.bg-white>.md\:w-96{grid-column:2;grid-row:1;min-height:0;overflow-y:auto;padding:16px;border-right:0;justify-content:flex-start}
+ body.item-inspector-open #view-detail .listing-prep{margin-top:18px;padding:15px 0 0;border-top:1px solid var(--workspace-border);overflow:visible}
+ body.item-inspector-open #view-detail .listing-prep .listing-fields{grid-template-columns:1fr}
+ body.item-inspector-open #view-detail .listing-prep header{flex-wrap:wrap}
+ body.item-inspector-open #view-detail .listing-actions{position:static}
+ body.item-inspector-open #view-detail>div:last-child{flex-wrap:wrap;gap:7px}
+ body.item-inspector-open #view-detail .marketplace-note{flex-basis:100%}
+}
+@media(min-width:1600px){body.item-inspector-open #view-list{width:32%}body.item-inspector-open #view-detail{left:32%;width:68%}body.item-inspector-open #view-detail .max-w-5xl>.bg-white{grid-template-columns:minmax(0,1.7fr) minmax(240px,1fr)}body.item-inspector-open #view-detail .listing-prep .listing-fields{grid-template-columns:2fr 1fr}}
+@media(max-width:1149px){body.item-inspector-open #view-list{display:none!important}}
